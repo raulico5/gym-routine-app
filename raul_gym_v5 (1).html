@@ -1,0 +1,1589 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Raúl Gym</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+
+<style>
+/* ── TOKENS ──────────────────────────────────────────── */
+:root {
+  --bg:        #0A0A0F;
+  --bg2:       #12121A;
+  --bg3:       #1A1A26;
+  --bg4:       #222235;
+  --border:    rgba(255,255,255,0.07);
+  --border2:   rgba(255,255,255,0.12);
+  --txt:       #F0EFF8;
+  --txt2:      #9896B0;
+  --txt3:      #5A5878;
+  --accent:    #6C63FF;
+  --accent2:   #8B85FF;
+  --accent-bg: rgba(108,99,255,0.12);
+  --green:     #3ECF8E;
+  --green-bg:  rgba(62,207,142,0.12);
+  --amber:     #F5A623;
+  --amber-bg:  rgba(245,166,35,0.12);
+  --red:       #FF6B6B;
+  --radius:    14px;
+  --radius-sm: 9px;
+  --shadow:    0 8px 32px rgba(0,0,0,0.5);
+
+  /* Tabler icon compat */
+  --color-text-primary:    #F0EFF8;
+  --color-text-secondary:  #9896B0;
+  --color-text-tertiary:   #5A5878;
+  --color-background-primary:   #12121A;
+  --color-background-secondary: #1A1A26;
+  --color-border-tertiary: rgba(255,255,255,0.07);
+  --color-border-secondary:rgba(255,255,255,0.12);
+  --color-border-success:  rgba(62,207,142,0.4);
+  --border-radius-lg: 14px;
+  --border-radius-md: 9px;
+}
+
+/* ── RESET & BASE ─────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { background: var(--bg); }
+body {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--txt);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── VIEW SWITCHER TOOLBAR ───────────────────────────── */
+#view-switcher {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  padding: 4px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(12px);
+}
+.vs-btn {
+  width: 34px; height: 34px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 7px;
+  border: none;
+  background: none;
+  color: var(--txt3);
+  cursor: pointer;
+  font-size: 17px;
+  transition: all .18s;
+}
+.vs-btn:hover { color: var(--txt2); background: var(--bg4); }
+.vs-btn.active { background: var(--accent-bg); color: var(--accent2); }
+
+/* ── LAYOUT WRAPPER ──────────────────────────────────── */
+#app-shell {
+  transition: all .35s cubic-bezier(.4,0,.2,1);
+}
+
+/* MOBILE mode: phone frame */
+#app-shell.mode-mobile {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 32px 20px 60px;
+  min-height: 100vh;
+  background: radial-gradient(ellipse at 60% 0%, rgba(108,99,255,0.08) 0%, transparent 60%), var(--bg);
+}
+#app-frame {
+  transition: all .35s cubic-bezier(.4,0,.2,1);
+}
+#app-shell.mode-mobile #app-frame {
+  width: 390px;
+  min-height: 700px;
+  border-radius: 44px;
+  border: 1.5px solid var(--border2);
+  box-shadow: 0 0 0 8px rgba(255,255,255,0.03), 0 40px 80px rgba(0,0,0,0.7);
+  overflow: hidden;
+  position: relative;
+  background: var(--bg);
+}
+/* Phone notch */
+#app-shell.mode-mobile #app-frame::before {
+  content: '';
+  display: block;
+  width: 120px; height: 30px;
+  background: var(--bg);
+  border-radius: 0 0 22px 22px;
+  border: 1.5px solid var(--border2);
+  border-top: none;
+  position: absolute;
+  top: 0; left: 50%; transform: translateX(-50%);
+  z-index: 100;
+}
+
+/* DESKTOP mode: full width */
+#app-shell.mode-desktop {
+  display: block;
+  padding: 0;
+  min-height: 100vh;
+  background: var(--bg);
+}
+#app-shell.mode-desktop #app-frame {
+  width: 100%;
+  max-width: 100%;
+  border-radius: 0;
+  border: none;
+  box-shadow: none;
+}
+
+/* ── INNER SCROLL AREA ───────────────────────────────── */
+#app-shell.mode-mobile #app-inner {
+  height: 812px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 50px 0 20px;
+  scrollbar-width: none;
+}
+#app-shell.mode-mobile #app-inner::-webkit-scrollbar { display: none; }
+#app-shell.mode-desktop #app-inner {
+  min-height: 100vh;
+  padding: 0;
+}
+
+/* ── DESKTOP NAV SIDEBAR ─────────────────────────────── */
+#desktop-nav {
+  display: none;
+}
+#app-shell.mode-desktop #desktop-nav {
+  display: flex;
+  position: fixed;
+  left: 0; top: 0; bottom: 0;
+  width: 240px;
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  flex-direction: column;
+  padding: 28px 16px;
+  gap: 4px;
+  z-index: 200;
+}
+#app-shell.mode-desktop .page-content {
+  margin-left: 240px;
+  max-width: 860px;
+  padding: 36px 48px;
+}
+#app-shell.mode-mobile .page-content {
+  padding: 0 18px;
+}
+
+.dnav-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px 20px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.dnav-brand-icon {
+  width: 34px; height: 34px;
+  background: var(--accent-bg);
+  border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--accent2);
+  font-size: 16px;
+}
+.dnav-brand-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--txt);
+}
+.dnav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 13.5px;
+  color: var(--txt2);
+  cursor: pointer;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  transition: all .15s;
+}
+.dnav-item:hover { background: var(--bg3); color: var(--txt); }
+.dnav-item.active { background: var(--accent-bg); color: var(--accent2); font-weight: 500; }
+.dnav-item i { font-size: 17px; }
+
+/* ── SCREENS ─────────────────────────────────────────── */
+.scr { display: none; }
+.scr.on { display: block; }
+.pg { }
+
+/* ── TOPBAR ──────────────────────────────────────────── */
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 1rem;
+  margin-bottom: 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+.tbtitle {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--txt);
+  flex: 1;
+  letter-spacing: -0.01em;
+}
+
+/* ── ICON BUTTON ─────────────────────────────────────── */
+.ib {
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--txt2);
+  padding: 7px 11px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  font-family: inherit;
+  transition: all .15s;
+}
+.ib:hover { background: var(--bg4); color: var(--txt); border-color: var(--border2); }
+
+/* ── CARDS ───────────────────────────────────────────── */
+.card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.25rem;
+  margin-bottom: 10px;
+}
+
+/* ── PILLS ───────────────────────────────────────────── */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+.pill-blue  { background: var(--accent-bg); color: var(--accent2); }
+.pill-green { background: var(--green-bg);  color: var(--green); }
+.pill-amber { background: var(--amber-bg);  color: var(--amber); }
+.pill-gray  { background: var(--bg4); color: var(--txt2); }
+
+/* ── SECTION LABEL ───────────────────────────────────── */
+.slbl {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--txt3);
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  margin: 16px 0 8px;
+}
+
+/* ── PROGRESS BAR ────────────────────────────────────── */
+.pbr-wrap {
+  background: var(--bg3);
+  border-radius: 20px;
+  height: 4px;
+  margin: 8px 0 16px;
+}
+.pbr {
+  height: 4px;
+  border-radius: 20px;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  transition: width .4s cubic-bezier(.4,0,.2,1);
+}
+
+/* ── BUTTONS ─────────────────────────────────────────── */
+.bigbtn {
+  width: 100%;
+  padding: 13px;
+  border-radius: var(--radius);
+  border: none;
+  background: linear-gradient(135deg, var(--accent), #9B8FFF);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin-top: 8px;
+  letter-spacing: -0.01em;
+  transition: all .18s;
+  box-shadow: 0 4px 16px rgba(108,99,255,0.3);
+}
+.bigbtn:hover { opacity: .88; transform: translateY(-1px); box-shadow: 0 6px 24px rgba(108,99,255,0.4); }
+.bigbtn:active { transform: translateY(0); }
+.bigbtn.ghost {
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  color: var(--txt);
+  box-shadow: none;
+}
+.bigbtn.ghost:hover { background: var(--bg4); }
+.bigbtn.grn {
+  background: linear-gradient(135deg, #2D9E6B, var(--green));
+  box-shadow: 0 4px 16px rgba(62,207,142,0.25);
+}
+.bigbtn.grn:hover { box-shadow: 0 6px 24px rgba(62,207,142,0.35); }
+.bigbtn.sml { width: auto; padding: 9px 18px; font-size: 13px; }
+
+/* ── DAY TABS ────────────────────────────────────────── */
+.dtabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+.dtab {
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  font-size: 12.5px;
+  font-family: inherit;
+  cursor: pointer;
+  background: var(--bg2);
+  color: var(--txt2);
+  transition: all .15s;
+}
+.dtab:hover { border-color: var(--border2); color: var(--txt); }
+.dtab.on {
+  background: var(--accent-bg);
+  color: var(--accent2);
+  border-color: rgba(108,99,255,0.3);
+  font-weight: 600;
+}
+
+/* ── EXERCISE CARD ───────────────────────────────────── */
+.excard {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.25rem;
+  margin-bottom: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: all .18s;
+}
+.excard:hover {
+  background: var(--bg3);
+  border-color: var(--border2);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+}
+
+/* ── SET ROW ─────────────────────────────────────────── */
+.set-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  transition: background .15s;
+}
+.set-row:last-child { border-bottom: none; }
+
+.set-num {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--txt2);
+  flex-shrink: 0;
+  font-family: 'DM Mono', monospace;
+}
+.set-num.done {
+  background: var(--green-bg);
+  border-color: rgba(62,207,142,0.3);
+  color: var(--green);
+}
+
+.sinp {
+  width: 74px;
+  padding: 7px 10px;
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-sm);
+  background: var(--bg3);
+  color: var(--txt);
+  font-size: 13.5px;
+  font-family: 'DM Mono', monospace;
+  transition: border-color .15s;
+  -moz-appearance: textfield;
+}
+.sinp::-webkit-outer-spin-button,
+.sinp::-webkit-inner-spin-button { -webkit-appearance: none; }
+.sinp:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(108,99,255,0.15);
+}
+
+.sdbtn {
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(62,207,142,0.35);
+  background: var(--green-bg);
+  color: var(--green);
+  font-size: 12px;
+  font-family: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all .15s;
+}
+.sdbtn:hover { background: rgba(62,207,142,0.2); }
+.sdbtn:disabled { opacity: .4; cursor: default; }
+
+/* ── ANIMATION BOX ───────────────────────────────────── */
+.anim-box {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+  overflow: hidden;
+}
+
+/* ── NOTE BOX ────────────────────────────────────────── */
+.note-box {
+  background: var(--amber-bg);
+  border: 1px solid rgba(245,166,35,0.2);
+  border-radius: var(--radius-sm);
+  padding: 10px 13px;
+  font-size: 12.5px;
+  color: var(--amber);
+  line-height: 1.65;
+  margin-bottom: 12px;
+}
+
+/* ── TIMER ───────────────────────────────────────────── */
+.tmr-big {
+  font-size: 72px;
+  font-weight: 300;
+  color: var(--txt);
+  text-align: center;
+  letter-spacing: -2px;
+  font-family: 'DM Mono', monospace;
+  line-height: 1;
+}
+.tmr-lbl {
+  font-size: 12px;
+  color: var(--txt2);
+  text-align: center;
+  margin-top: 6px;
+  margin-bottom: 20px;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+.tpresets {
+  display: flex;
+  gap: 7px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin: 14px 0;
+}
+.tpbtn {
+  padding: 6px 15px;
+  border-radius: 20px;
+  border: 1px solid var(--border2);
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  background: var(--bg3);
+  color: var(--txt2);
+  transition: all .15s;
+}
+.tpbtn:hover { background: var(--bg4); color: var(--txt); border-color: var(--accent); }
+
+/* ── HISTORY ─────────────────────────────────────────── */
+.hist-wk-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+.hist-wk-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--txt);
+}
+.hist-ex-block {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+.hist-ex-head {
+  padding: 11px 15px;
+  background: var(--bg3);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.hist-ex-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--txt);
+}
+.hist-set-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 15px;
+  border-top: 1px solid var(--border);
+  font-size: 12.5px;
+}
+
+/* ── EMPTY STATE ─────────────────────────────────────── */
+.empty {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--txt3);
+  font-size: 13px;
+  line-height: 2;
+}
+
+/* ── AVATAR ──────────────────────────────────────────── */
+.avatar {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  background: var(--accent-bg);
+  border: 1px solid rgba(108,99,255,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--accent2);
+  flex-shrink: 0;
+}
+
+/* ── WEATHER ROW ─────────────────────────────────────── */
+.weather-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 1.25rem;
+}
+
+/* ── HOME GRID ───────────────────────────────────────── */
+.home-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 10px;
+}
+.home-tile {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.1rem 1.25rem;
+  cursor: pointer;
+  transition: all .2s;
+}
+.home-tile:hover {
+  background: var(--bg3);
+  border-color: var(--border2);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(0,0,0,0.3);
+}
+
+/* ── NAV ROW ─────────────────────────────────────────── */
+.nav-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 14px;
+  gap: 8px;
+}
+
+/* ── DESKTOP SPECIFIC OVERRIDES ──────────────────────── */
+#app-shell.mode-desktop .home-grid {
+  grid-template-columns: repeat(4, 1fr);
+}
+#app-shell.mode-desktop .home-today-card-wrap {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 0;
+}
+#app-shell.mode-desktop #home-today-card {
+  margin-bottom: 0;
+}
+#app-shell.mode-desktop .weather-row {
+  max-width: 340px;
+}
+#app-shell.mode-desktop .tmr-big {
+  font-size: 100px;
+}
+
+/* ── SUBTLE GRAIN TEXTURE ────────────────────────────── */
+#app-shell.mode-desktop::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  opacity: .5;
+  z-index: 9999;
+}
+
+/* ── DESKTOP HEADER (replaces topbar in desktop) ─────── */
+#app-shell.mode-desktop .topbar {
+  display: none;
+}
+#app-shell.mode-desktop .desktop-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+}
+.desktop-topbar { display: none; }
+#app-shell.mode-desktop .desktop-topbar h1 {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--txt);
+  letter-spacing: -0.03em;
+}
+
+/* ── REST SCREEN CENTER ──────────────────────────────── */
+.rest-center {
+  text-align: center;
+  padding: 2rem 0 1.5rem;
+}
+
+/* ── DESKTOP HOME STATS ROW ──────────────────────────── */
+.stats-row {
+  display: none;
+}
+#app-shell.mode-desktop .stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.stat-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.1rem 1.25rem;
+}
+.stat-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--txt3);
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  margin-bottom: 6px;
+}
+.stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--txt);
+  font-family: 'DM Mono', monospace;
+  letter-spacing: -1px;
+}
+.stat-sub {
+  font-size: 11.5px;
+  color: var(--txt2);
+  margin-top: 2px;
+}
+
+/* ── SCROLLBAR ───────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 10px; }
+
+/* Animations */
+@keyframes fadeUp {
+  from { opacity:0; transform: translateY(12px); }
+  to   { opacity:1; transform: translateY(0); }
+}
+.scr.on .card,
+.scr.on .excard,
+.scr.on .hist-ex-block {
+  animation: fadeUp .25s ease both;
+}
+</style>
+</head>
+<body>
+
+<!-- VIEW SWITCHER -->
+<div id="view-switcher">
+  <button class="vs-btn" id="vs-mobile" title="Vista móvil" aria-label="Vista móvil">
+    <i class="ti ti-device-mobile"></i>
+  </button>
+  <button class="vs-btn active" id="vs-desktop" title="Vista escritorio" aria-label="Vista escritorio">
+    <i class="ti ti-device-laptop"></i>
+  </button>
+</div>
+
+<!-- APP SHELL -->
+<div id="app-shell" class="mode-desktop">
+
+  <!-- DESKTOP SIDEBAR -->
+  <nav id="desktop-nav">
+    <div class="dnav-brand">
+      <div class="dnav-brand-icon"><i class="ti ti-barbell"></i></div>
+      <div class="dnav-brand-name">Raúl Gym</div>
+    </div>
+    <button class="dnav-item active" data-nav="home">
+      <i class="ti ti-home"></i> Inicio
+    </button>
+    <button class="dnav-item" data-nav="days">
+      <i class="ti ti-calendar"></i> Ver días
+    </button>
+    <button class="dnav-item" data-nav="hist">
+      <i class="ti ti-chart-bar"></i> Historial
+    </button>
+  </nav>
+
+  <!-- APP FRAME (phone shell in mobile mode) -->
+  <div id="app-frame">
+    <div id="app-inner">
+
+      <!-- ══ SCREEN: HOME ══════════════════════════════ -->
+      <div id="s-home" class="scr on pg">
+        <div class="page-content">
+
+          <!-- Mobile header -->
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;" class="mobile-header">
+            <div>
+              <div style="font-size:24px;font-weight:700;color:var(--txt);letter-spacing:-0.03em">Hola, Raúl</div>
+              <div id="home-dt" style="font-size:12px;color:var(--txt2);margin-top:3px;"></div>
+            </div>
+            <div class="avatar">R</div>
+          </div>
+
+          <!-- Desktop header -->
+          <div class="desktop-topbar">
+            <div>
+              <h1>Hola, Raúl <span style="font-weight:300">👋</span></h1>
+              <div id="home-dt-desk" style="font-size:13px;color:var(--txt2);margin-top:4px;"></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div class="weather-row" id="wx-row-desk" style="margin:0;padding:8px 14px;">
+                <i class="ti ti-cloud-sun" id="wx-icon-desk" style="font-size:20px;color:var(--accent2)" aria-hidden="true"></i>
+                <div>
+                  <span id="wx-temp-desk" style="font-size:15px;font-weight:600;color:var(--txt)">--°C</span>
+                  <span id="wx-desc-desk" style="font-size:11px;color:var(--txt2);margin-left:6px"></span>
+                </div>
+              </div>
+              <div class="avatar">R</div>
+            </div>
+          </div>
+
+          <!-- Stats row (desktop) -->
+          <div class="stats-row" id="stats-row">
+            <div class="stat-card">
+              <div class="stat-label">Entrenamientos</div>
+              <div class="stat-value" id="stat-sessions">—</div>
+              <div class="stat-sub">registrados</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Semana actual</div>
+              <div class="stat-value" id="stat-week">—</div>
+              <div class="stat-sub">ejercicios completados</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Días de gym</div>
+              <div class="stat-value">4</div>
+              <div class="stat-sub">por semana</div>
+            </div>
+          </div>
+
+          <!-- Weather mobile -->
+          <div class="weather-row" id="wx-row">
+            <i class="ti ti-cloud-sun" id="wx-icon" style="font-size:22px;color:var(--accent2)" aria-hidden="true"></i>
+            <div>
+              <div id="wx-temp" style="font-size:18px;font-weight:600;color:var(--txt)">--°C</div>
+              <div id="wx-desc" style="font-size:11px;color:var(--txt2)">Cargando clima...</div>
+            </div>
+          </div>
+
+          <!-- Today card -->
+          <div class="home-today-card-wrap">
+            <div class="card" id="home-today-card">
+              <div id="home-day-label" style="font-size:11px;font-weight:600;color:var(--txt3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px;"></div>
+              <div id="home-day-title" style="font-size:20px;font-weight:700;color:var(--txt);margin-bottom:4px;letter-spacing:-0.02em;"></div>
+              <div id="home-day-sub" style="font-size:12.5px;color:var(--txt2);margin-bottom:2px;"></div>
+              <button class="bigbtn" id="btn-begin" style="margin-top:16px"><i class="ti ti-player-play" aria-hidden="true"></i> Comenzar entrenamiento</button>
+            </div>
+          </div>
+
+          <!-- Quick access grid -->
+          <div class="home-grid">
+            <div class="home-tile" id="btn-nav-hist">
+              <i class="ti ti-chart-bar" style="font-size:22px;color:var(--accent2)" aria-hidden="true"></i>
+              <div style="font-size:14px;font-weight:600;color:var(--txt);margin-top:10px;letter-spacing:-0.01em">Historial</div>
+              <div style="font-size:11.5px;color:var(--txt2)">Pesos por semana</div>
+            </div>
+            <div class="home-tile" id="btn-nav-days">
+              <i class="ti ti-calendar" style="font-size:22px;color:var(--accent2)" aria-hidden="true"></i>
+              <div style="font-size:14px;font-weight:600;color:var(--txt);margin-top:10px;letter-spacing:-0.01em">Ver días</div>
+              <div style="font-size:11.5px;color:var(--txt2)">Todos los entrenamientos</div>
+            </div>
+          </div>
+
+        </div><!-- /page-content -->
+      </div><!-- /s-home -->
+
+      <!-- ══ SCREEN: DAYS ══════════════════════════════ -->
+      <div id="s-days" class="scr pg">
+        <div class="page-content">
+          <div class="topbar">
+            <button class="ib" id="back-days" aria-label="Volver"><i class="ti ti-arrow-left" aria-hidden="true"></i> Volver</button>
+            <div class="tbtitle">Seleccionar día</div>
+          </div>
+          <div class="desktop-topbar">
+            <h1>Seleccionar día</h1>
+          </div>
+          <div id="days-list"></div>
+        </div>
+      </div>
+
+      <!-- ══ SCREEN: WARMUP ════════════════════════════ -->
+      <div id="s-warmup" class="scr pg">
+        <div class="page-content">
+          <div class="topbar">
+            <button class="ib" id="back-warmup" aria-label="Volver"><i class="ti ti-arrow-left" aria-hidden="true"></i> Volver</button>
+            <div class="tbtitle">Calentamiento</div>
+            <span id="warm-counter" style="font-size:12px;color:var(--txt2);font-family:'DM Mono',monospace;"></span>
+          </div>
+          <div class="desktop-topbar">
+            <h1>Calentamiento</h1>
+            <span id="warm-counter-d" style="font-size:14px;color:var(--txt2);font-family:'DM Mono',monospace;"></span>
+          </div>
+          <div class="pbr-wrap"><div class="pbr" id="warm-pbr" style="width:0%"></div></div>
+          <div id="warm-body"></div>
+          <div class="nav-row">
+            <button class="bigbtn ghost sml" id="btn-warm-prev"><i class="ti ti-arrow-left" aria-hidden="true"></i></button>
+            <button class="bigbtn sml" id="btn-warm-next"><i class="ti ti-arrow-right" aria-hidden="true"></i> Siguiente</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ SCREEN: WORKOUT ═══════════════════════════ -->
+      <div id="s-workout" class="scr pg">
+        <div class="page-content">
+          <div class="topbar">
+            <button class="ib" id="back-workout" aria-label="Volver"><i class="ti ti-arrow-left" aria-hidden="true"></i> Volver</button>
+            <div class="tbtitle" id="wo-title"></div>
+          </div>
+          <div class="desktop-topbar">
+            <h1 id="wo-title-d"></h1>
+          </div>
+          <div id="wo-body"></div>
+        </div>
+      </div>
+
+      <!-- ══ SCREEN: EXERCISE ══════════════════════════ -->
+      <div id="s-exercise" class="scr pg">
+        <div class="page-content">
+          <div class="topbar">
+            <button class="ib" id="back-ex" aria-label="Volver"><i class="ti ti-arrow-left" aria-hidden="true"></i> Volver</button>
+            <div class="tbtitle" id="ex-title" style="font-size:13px"></div>
+            <span id="ex-counter" style="font-size:12px;color:var(--txt2);white-space:nowrap;font-family:'DM Mono',monospace;"></span>
+          </div>
+          <div class="desktop-topbar">
+            <h1 id="ex-title-d"></h1>
+            <span id="ex-counter-d" style="font-size:14px;color:var(--txt2);font-family:'DM Mono',monospace;"></span>
+          </div>
+          <div class="pbr-wrap"><div class="pbr" id="ex-pbr" style="width:0%"></div></div>
+          <div class="anim-box" id="ex-anim" style="height:140px"></div>
+          <div class="card">
+            <div style="font-size:17px;font-weight:700;color:var(--txt);margin-bottom:6px;letter-spacing:-0.02em" id="ex-name"></div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px" id="ex-pills"></div>
+            <div class="note-box" id="ex-note"></div>
+            <div class="slbl">Series — peso por serie</div>
+            <div id="ex-sets"></div>
+            <div id="ex-hist-prev" style="margin-top:10px"></div>
+          </div>
+          <div class="nav-row">
+            <button class="bigbtn ghost sml" id="btn-ex-prev"><i class="ti ti-arrow-left" aria-hidden="true"></i></button>
+            <span id="ex-nav-lbl" style="font-size:12px;color:var(--txt2);font-family:'DM Mono',monospace;"></span>
+            <button class="bigbtn sml" id="btn-ex-next">Siguiente <i class="ti ti-arrow-right" aria-hidden="true"></i></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ SCREEN: REST ══════════════════════════════ -->
+      <div id="s-rest" class="scr pg">
+        <div class="page-content">
+          <div class="topbar">
+            <button class="ib" id="back-rest" aria-label="Volver"><i class="ti ti-arrow-left" aria-hidden="true"></i> Volver</button>
+            <div class="tbtitle">Descanso</div>
+          </div>
+          <div class="desktop-topbar">
+            <h1>Descanso</h1>
+          </div>
+          <div class="rest-center">
+            <div style="font-size:12.5px;color:var(--txt2);margin-bottom:16px;text-transform:uppercase;letter-spacing:.08em">Recupera y prepárate</div>
+            <div class="tmr-big" id="rest-disp">01:30</div>
+            <div class="tmr-lbl">restantes</div>
+            <div class="tpresets">
+              <button class="tpbtn" data-s="60">1 min</button>
+              <button class="tpbtn" data-s="75">75 seg</button>
+              <button class="tpbtn" data-s="90">90 seg</button>
+              <button class="tpbtn" data-s="120">2 min</button>
+              <button class="tpbtn" data-s="180">3 min</button>
+            </div>
+          </div>
+          <button class="bigbtn grn" id="btn-rest-done"><i class="ti ti-check" aria-hidden="true"></i> Listo, siguiente serie</button>
+        </div>
+      </div>
+
+      <!-- ══ SCREEN: HISTORY ═══════════════════════════ -->
+      <div id="s-hist" class="scr pg">
+        <div class="page-content">
+          <div class="topbar">
+            <button class="ib" id="back-hist" aria-label="Volver"><i class="ti ti-arrow-left" aria-hidden="true"></i> Volver</button>
+            <div class="tbtitle">Historial de pesos</div>
+          </div>
+          <div class="desktop-topbar">
+            <h1>Historial de pesos</h1>
+          </div>
+          <div class="dtabs" id="hist-day-tabs"></div>
+          <div class="hist-wk-nav">
+            <button class="ib" id="btn-hist-prev"><i class="ti ti-chevron-left" aria-hidden="true"></i></button>
+            <div class="hist-wk-label" id="hist-wk-label">Semana 1</div>
+            <button class="ib" id="btn-hist-next"><i class="ti ti-chevron-right" aria-hidden="true"></i></button>
+          </div>
+          <div id="hist-body"></div>
+        </div>
+      </div>
+
+    </div><!-- /app-inner -->
+  </div><!-- /app-frame -->
+</div><!-- /app-shell -->
+
+<script>
+/* ── VIEW SWITCHER ────────────────────────────────────── */
+var shell = document.getElementById('app-shell');
+var vsMobile = document.getElementById('vs-mobile');
+var vsDesktop = document.getElementById('vs-desktop');
+
+// Detect initial mode from window width
+var currentMode = window.innerWidth < 600 ? 'mobile' : 'desktop';
+applyMode(currentMode);
+
+function applyMode(mode) {
+  currentMode = mode;
+  shell.className = 'mode-' + mode;
+  vsMobile.classList.toggle('active', mode === 'mobile');
+  vsDesktop.classList.toggle('active', mode === 'desktop');
+  // Sync desktop nav sidebar nav items
+  syncDesktopNav();
+}
+
+vsMobile.addEventListener('click', function(){ applyMode('mobile'); });
+vsDesktop.addEventListener('click', function(){ applyMode('desktop'); });
+
+function syncDesktopNav() {
+  var active = document.querySelector('.scr.on');
+  var id = active ? active.id : 's-home';
+  var map = { 's-home': 'home', 's-days': 'days', 's-hist': 'hist' };
+  document.querySelectorAll('.dnav-item').forEach(function(btn) {
+    btn.classList.toggle('active', btn.getAttribute('data-nav') === (map[id] || ''));
+  });
+}
+
+document.querySelectorAll('.dnav-item').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    var nav = btn.getAttribute('data-nav');
+    if (nav === 'home') { show('s-home'); }
+    else if (nav === 'days') { renderDaysList(); show('s-days'); }
+    else if (nav === 'hist') { histDayIdx = curDay; if (DAYS[histDayIdx].type === 'rest') histDayIdx = 0; renderHist(); show('s-hist'); }
+    syncDesktopNav();
+  });
+});
+
+/* ── HIDE MOBILE HEADER IN DESKTOP ──────────────────── */
+function updateHeaderVisibility() {
+  var mobileHeaders = document.querySelectorAll('.mobile-header, #wx-row');
+  var desktopHeaders = document.querySelectorAll('#wx-row-desk, .stats-row');
+  if (currentMode === 'desktop') {
+    mobileHeaders.forEach(function(el) { el.style.display = 'none'; });
+  } else {
+    mobileHeaders.forEach(function(el) { el.style.display = ''; });
+  }
+}
+
+/* ── DATA ────────────────────────────────────────────── */
+var DAYS=[
+  {name:"Lunes",short:"Lun",badge:"Pecho + Tríceps",type:"gym",
+   warmup:[
+    {name:"Movilidad de hombros",dur:"60 seg",tip:"Círculos lentos hacia delante y atrás con ambos brazos",svg:wShoulder},
+    {name:"Apertura de pecho",dur:"60 seg",tip:"Lleva los codos hacia atrás, abre el pecho al máximo",svg:wChest},
+    {name:"Flexiones de activación",dur:"10 reps lentas",tip:"3 seg de bajada. Solo para activar, sin llegar al fallo",svg:wPushup},
+    {name:"Rotaciones de muñeca",dur:"30 seg",tip:"Círculos en ambas direcciones para proteger la articulación",svg:wWrist}
+   ],
+   sections:[
+    {label:"Bloque fuerza",exercises:[
+      {name:"Press de banca con barra",sets:4,reps:"5–6",rest:180,tip:"Escápulas juntas y hundidas. Baja 2 seg controlado. RIR 2 primeras semanas.",inc:2.5,unit:"total"},
+      {name:"Press inclinado con mancuernas",sets:3,reps:"8–10",rest:120,tip:"Codos a 45°. Controla la bajada para estirar el pectoral.",inc:2,unit:"c/lado"},
+    ]},
+    {label:"Hipertrofia",exercises:[
+      {name:"Cruce de poleas",sets:3,reps:"12–15",rest:90,tip:"Pausa 1 seg en contracción. Busca congestión máxima.",inc:2.5,unit:"total"},
+      {name:"Fondos en paralelas",sets:3,reps:"8–12",rest:90,tip:"Inclínate hacia delante para más pecho.",inc:0,unit:"peso corporal"},
+    ]},
+    {label:"Tríceps",exercises:[
+      {name:"Extensión polea alta con cuerda",sets:3,reps:"12",rest:75,tip:"Abre la cuerda al final. Codos quietos pegados al cuerpo.",inc:2.5,unit:"total"},
+      {name:"Extensión unilateral tras nuca",sets:3,reps:"10–12",rest:75,tip:"Codo apuntando al techo, solo mueve el antebrazo.",inc:1,unit:"c/lado"},
+    ]}
+   ]},
+  {name:"Martes",short:"Mar",badge:"Espalda + Bíceps + Antebrazo",type:"gym",
+   warmup:[
+    {name:"Rotación interna de hombro",dur:"30 seg c/lado",tip:"Peso mínimo, activa el manguito rotador antes del tirón",svg:wShoulder},
+    {name:"Cat-cow (gato-vaca)",dur:"60 seg",tip:"En cuadrupedia, moviliza toda la columna vertebral",svg:wCamel},
+    {name:"Jalón de activación con banda",dur:"15 reps",tip:"Activa el dorsal antes de los ejercicios pesados",svg:wPulldown},
+    {name:"Curl ligero de activación",dur:"10 reps",tip:"Solo para calentar el codo, peso mínimo",svg:wCurl}
+   ],
+   sections:[
+    {label:"Espalda fuerza",exercises:[
+      {name:"Remo con barra",sets:4,reps:"6–8",rest:180,tip:"Barra al ombligo, no al pecho. Pecho orgulloso, espalda recta.",inc:2.5,unit:"total"},
+      {name:"Dominadas / jalón neutro",sets:3,reps:"8–10",rest:120,tip:"Si no llegas a 8 usa asistencia. Progresa cada semana.",inc:2.5,unit:"total"},
+    ]},
+    {label:"Espalda hipertrofia",exercises:[
+      {name:"Remo unilateral polea baja",sets:3,reps:"10–12",rest:90,tip:"Mango hacia la cadera. Aguanta 1 seg atrás.",inc:2.5,unit:"total"},
+      {name:"Pájaros Pec Deck invertido",sets:3,reps:"12–15",rest:75,tip:"Deltoides posterior. Aguanta 1 seg al final.",inc:2.5,unit:"total"},
+    ]},
+    {label:"Trapecio",exercises:[
+      {name:"Encogimientos con mancuernas",sets:3,reps:"12–15",rest:60,tip:"Solo el trapecio, no el cuello. Pausa 1 seg arriba.",inc:2,unit:"c/lado"},
+    ]},
+    {label:"Bíceps + Antebrazo",exercises:[
+      {name:"Curl banco Scott",sets:3,reps:"8–10",rest:90,tip:"Pico máximo de contracción. Baja muy controlado.",inc:1.25,unit:"c/lado"},
+      {name:"Curl martillo",sets:2,reps:"10–12",rest:75,tip:"Braquial y grosor de antebrazo. Agarre neutro todo el movimiento.",inc:2,unit:"c/lado"},
+      {name:"Curl antebrazo prono invertido",sets:3,reps:"15",rest:60,tip:"El más olvidado. Rellena el antebrazo completamente.",inc:1.25,unit:"total"},
+    ]}
+   ]},
+  {name:"Miércoles",short:"Mié",badge:"Descanso / Running",type:"rest"},
+  {name:"Jueves",short:"Jue",badge:"Hombro + Pierna running",type:"gym",
+   warmup:[
+    {name:"Rotaciones de cadera",dur:"60 seg",tip:"Círculos amplios, moviliza la articulación antes de cargar",svg:wHip},
+    {name:"Sentadilla goblet ligera",dur:"10 reps",tip:"Activa cuádriceps y glúteo antes del trabajo pesado",svg:wSquat},
+    {name:"Elevaciones laterales con banda",dur:"15 reps",tip:"Activa el deltoides medio antes del press militar",svg:wLateral},
+    {name:"Zancada en el sitio sin peso",dur:"10 reps c/pierna",tip:"Activa estabilizadores de rodilla y tobillo",svg:wLunge}
+   ],
+   sections:[
+    {label:"Hombro",exercises:[
+      {name:"Press militar con barra",sets:4,reps:"6–8",rest:180,tip:"Núcleo braced, no arquees la espalda. El rey del hombro.",inc:2.5,unit:"total"},
+      {name:"Elevaciones laterales",sets:4,reps:"12–15",rest:75,tip:"Codo ligeramente flexionado. Controla la bajada 2 seg.",inc:1,unit:"c/lado"},
+      {name:"Elevaciones frontales alternas",sets:3,reps:"10–12",rest:60,tip:"Alterna brazo para más control. Deltoides anterior.",inc:1,unit:"c/lado"},
+    ]},
+    {label:"Pierna — running",exercises:[
+      {name:"Sentadilla Hack / búlgara",sets:3,reps:"8–10",rest:120,tip:"La búlgara mejora el equilibrio unilateral vital para correr.",inc:2.5,unit:"total"},
+      {name:"Peso muerto rumano",sets:3,reps:"10",rest:120,tip:"Isquiotibiales fuertes = rodillas protegidas al correr.",inc:2.5,unit:"total"},
+      {name:"Zancada estática multipower",sets:3,reps:"10 c/pierna",rest:90,tip:"Pie trasero apoyado. Baja controlado. Mismo patrón que correr.",inc:2.5,unit:"total"},
+      {name:"Elevación talones de pie",sets:4,reps:"12–15",rest:60,tip:"Pausa 2 seg abajo para eliminar el rebote del tendón.",inc:5,unit:"total"},
+      {name:"Elevación talones sentado (sóleo)",sets:3,reps:"15–20",rest:60,tip:"Estabilizador del tobillo. Crítico para corredores.",inc:5,unit:"total"},
+    ]}
+   ]},
+  {name:"Viernes",short:"Vie",badge:"Pierna estética + Core",type:"gym",
+   warmup:[
+    {name:"Movilidad de tobillo",dur:"30 seg c/lado",tip:"Círculos de tobillo. Fundamental para sentadilla y extensiones.",svg:wAnkle},
+    {name:"Puente de glúteo",dur:"15 reps",tip:"Activa el glúteo antes del hip thrust pesado. Pausa 1 seg arriba.",svg:wBridge},
+    {name:"Apertura de cadera tumbado",dur:"60 seg",tip:"Tumbado, rodilla al pecho y rota. Abre el aductor.",svg:wHip},
+    {name:"Plancha 20 seg",dur:"20 seg",tip:"Core braced antes del trabajo de abdomen.",svg:wPlank}
+   ],
+   sections:[
+    {label:"Cuádriceps, isquios y glúteo",exercises:[
+      {name:"Extensión cuádriceps máquina",sets:3,reps:"12–15",rest:90,tip:"Llega cerca del fallo. Pausa 1 seg en contracción arriba.",inc:2.5,unit:"total"},
+      {name:"Curl femoral",sets:4,reps:"10–12",rest:90,tip:"El sentado da más estiramiento, el tumbado más control.",inc:2.5,unit:"total"},
+      {name:"Hip thrust con barra",sets:3,reps:"10–12",rest:120,tip:"Pie plano, rodilla a 90°. El más efectivo para glúteo.",inc:5,unit:"total"},
+    ]},
+    {label:"Abductor y aductor",exercises:[
+      {name:"Máquina abductora",sets:3,reps:"15–20",rest:60,tip:"Glúteo medio y estabilidad de cadera. Vital para la rodilla al correr.",inc:5,unit:"total"},
+      {name:"Máquina aductora",sets:3,reps:"15–20",rest:60,tip:"Cara interna del muslo. Completa el trabajo de cadera.",inc:5,unit:"total"},
+    ]},
+    {label:"Gemelos",exercises:[
+      {name:"Elevación talones sentado (sóleo)",sets:3,reps:"15–20",rest:60,tip:"Segunda sesión semanal de sóleo. Aguantan doble frecuencia.",inc:5,unit:"total"},
+    ]},
+    {label:"Core",exercises:[
+      {name:"Plancha frontal",sets:3,reps:"45–60 seg",rest:60,tip:"Cadera neutra, no dejes que caiga. Core fuerte = running eficiente.",inc:0,unit:"tiempo"},
+      {name:"Rueda abdominal",sets:3,reps:"8–12",rest:75,tip:"De rodillas primero. Progresa a pie cuando domines el movimiento.",inc:0,unit:"peso corporal"},
+      {name:"Crunch en suelo",sets:3,reps:"15–20",rest:60,tip:"Solo despega los omóplatos. Pausa 1 seg arriba.",inc:0,unit:"peso corporal"},
+    ]}
+   ]},
+  {name:"Sábado",short:"Sáb",badge:"Running / Descanso",type:"rest"},
+  {name:"Domingo",short:"Dom",badge:"Descanso total",type:"rest"}
+];
+
+var curDay=(new Date().getDay()+6)%7;
+var warmIdx=0, exList=[], exIdx=0;
+var restSec=90, restLeft=90, restInt=null;
+var histDayIdx=0, histWeekIdx=0;
+var db={};
+
+function loadDb(){try{var s=localStorage.getItem('raul_gym_v4');if(s)db=JSON.parse(s);}catch(e){db={};}}
+function saveDb(){try{localStorage.setItem('raul_gym_v4',JSON.stringify(db));}catch(e){}}
+loadDb();
+
+function G(id){return document.getElementById(id);}
+function show(id){
+  document.querySelectorAll('.scr').forEach(function(s){s.classList.remove('on');});
+  G(id).classList.add('on');
+  syncDesktopNav();
+}
+
+function getWeekKey(){
+  var now=new Date();
+  var d=new Date(Date.UTC(now.getFullYear(),now.getMonth(),now.getDate()));
+  var day=d.getUTCDay()||7; d.setUTCDate(d.getUTCDate()+4-day);
+  var y=d.getUTCFullYear();
+  var w=Math.ceil((((d-new Date(Date.UTC(y,0,1)))/86400000)+1)/7);
+  return y+'-W'+String(w).padStart(2,'0');
+}
+function fmtRest(s){return s>=60?(s/60)+'min'+(s%60?' '+s%60+'s':''):s+'seg';}
+function fmtWeek(wk){
+  var p=wk.split('-W');
+  return 'Semana '+parseInt(p[1])+' ('+p[0]+')';
+}
+
+function updateDt(){
+  var now=new Date();
+  var dn=["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"];
+  var mn=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+  var h=String(now.getHours()).padStart(2,'0'),m=String(now.getMinutes()).padStart(2,'0');
+  var txt=dn[now.getDay()]+' · '+now.getDate()+' de '+mn[now.getMonth()]+' · '+h+':'+m;
+  if(G('home-dt')) G('home-dt').textContent=txt;
+  if(G('home-dt-desk')) G('home-dt-desk').textContent=txt;
+}
+updateDt(); setInterval(updateDt,10000);
+
+function loadWeather(){
+  if(!navigator.geolocation){
+    if(G('wx-desc')) G('wx-desc').textContent='Sin ubicación';
+    if(G('wx-desc-desk')) G('wx-desc-desk').textContent='Sin ubicación';
+    return;
+  }
+  navigator.geolocation.getCurrentPosition(function(pos){
+    fetch('https://api.open-meteo.com/v1/forecast?latitude='+pos.coords.latitude+'&longitude='+pos.coords.longitude+'&current_weather=true')
+    .then(function(r){return r.json();}).then(function(d){
+      var t=Math.round(d.current_weather.temperature);
+      var wc=d.current_weather.weathercode;
+      var desc=wc<=1?'Despejado':wc<=3?'Parcialmente nublado':wc<=48?'Nublado':wc<=67?'Lluvia':'Tormenta';
+      var icon=wc<=1?'ti-sun':wc<=3?'ti-cloud-sun':wc<=48?'ti-cloud':'ti-cloud-rain';
+      if(G('wx-temp')) G('wx-temp').textContent=t+'°C';
+      if(G('wx-desc')) G('wx-desc').textContent=desc;
+      if(G('wx-icon')) G('wx-icon').className='ti '+icon+' ';
+      if(G('wx-temp-desk')) G('wx-temp-desk').textContent=t+'°C';
+      if(G('wx-desc-desk')) G('wx-desc-desk').textContent=desc;
+      if(G('wx-icon-desk')) G('wx-icon-desk').className='ti '+icon+' ';
+    }).catch(function(){
+      if(G('wx-desc')) G('wx-desc').textContent='Sin datos';
+      if(G('wx-desc-desk')) G('wx-desc-desk').textContent='Sin datos';
+    });
+  },function(){
+    if(G('wx-desc')) G('wx-desc').textContent='Sin acceso a ubicación';
+    if(G('wx-desc-desk')) G('wx-desc-desk').textContent='Sin acceso a ubicación';
+  });
+}
+loadWeather();
+
+/* Stats for desktop home */
+function updateStats(){
+  var wk = getWeekKey();
+  var sessions = Object.keys(db).length;
+  var thisWeekSets = 0;
+  Object.keys(db).forEach(function(k){
+    if(db[k]){
+      Object.keys(db[k]).forEach(function(sk){
+        if(sk.startsWith(wk) && sk.endsWith('_done') && db[k][sk]) thisWeekSets++;
+      });
+    }
+  });
+  if(G('stat-sessions')) G('stat-sessions').textContent = sessions || '0';
+  if(G('stat-week')) G('stat-week').textContent = thisWeekSets || '0';
+}
+updateStats();
+
+function renderHome(){
+  var d=DAYS[curDay];
+  G('home-day-label').textContent=d.name;
+  G('home-day-title').textContent=d.badge;
+  if(d.type==='rest'){
+    G('home-day-sub').textContent='Día de descanso. Recupera y descansa bien.';
+    G('btn-begin').style.display='none';
+  } else {
+    var total=0; d.sections.forEach(function(s){total+=s.exercises.length;});
+    G('home-day-sub').textContent=d.sections.length+' bloques · '+total+' ejercicios';
+    G('btn-begin').style.display='flex';
+  }
+}
+renderHome();
+
+G('btn-begin').addEventListener('click',function(){startWarmup(curDay);});
+G('btn-nav-hist').addEventListener('click',function(){histDayIdx=curDay;if(DAYS[histDayIdx].type==='rest') histDayIdx=0;renderHist();show('s-hist');});
+G('btn-nav-days').addEventListener('click',function(){renderDaysList();show('s-days');});
+G('back-days').addEventListener('click',function(){show('s-home');});
+G('back-warmup').addEventListener('click',function(){show('s-home');});
+G('back-workout').addEventListener('click',function(){show('s-home');});
+G('back-ex').addEventListener('click',function(){show('s-workout');});
+G('back-rest').addEventListener('click',function(){clearInterval(restInt);show('s-exercise');});
+G('btn-rest-done').addEventListener('click',function(){clearInterval(restInt);show('s-exercise');});
+G('back-hist').addEventListener('click',function(){show('s-home');});
+
+function renderDaysList(){
+  var h='';
+  DAYS.forEach(function(d,i){
+    h+='<div class="card" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;transition:all .18s;" data-di="'+i+'">'
+      +'<div>'
+      +'<div style="font-size:14px;font-weight:600;color:var(--txt);letter-spacing:-0.01em">'+d.name+' — '+d.badge+'</div>'
+      +(d.type==='gym'?'<div style="font-size:12px;color:var(--txt2);margin-top:3px">'+d.sections.length+' bloques de trabajo</div>':'<div style="font-size:12px;color:var(--txt2);margin-top:3px">Descanso</div>')
+      +'</div>'
+      +(d.type==='gym'?'<i class="ti ti-chevron-right" style="font-size:16px;color:var(--txt3)" aria-hidden="true"></i>':'')
+      +'</div>';
+  });
+  G('days-list').innerHTML=h;
+  G('days-list').querySelectorAll('[data-di]').forEach(function(c){
+    c.addEventListener('click',function(){
+      var di=parseInt(c.getAttribute('data-di'));
+      if(DAYS[di].type!=='gym') return;
+      curDay=di; startWarmup(di);
+    });
+  });
+}
+
+function startWarmup(di){
+  curDay=di; warmIdx=0; renderWarm(); show('s-warmup');
+}
+function renderWarm(){
+  var d=DAYS[curDay]; var w=d.warmup[warmIdx];
+  var ctr = (warmIdx+1)+'/'+d.warmup.length;
+  if(G('warm-counter')) G('warm-counter').textContent=ctr;
+  if(G('warm-counter-d')) G('warm-counter-d').textContent=ctr;
+  G('warm-pbr').style.width=Math.round(((warmIdx+1)/d.warmup.length)*100)+'%';
+  G('warm-body').innerHTML=
+    '<div class="anim-box" style="height:140px">'+w.svg()+'</div>'
+    +'<div style="font-size:18px;font-weight:700;color:var(--txt);margin-bottom:8px;letter-spacing:-0.02em">'+w.name+'</div>'
+    +'<span class="pill pill-blue" style="margin-bottom:12px"><i class="ti ti-clock" style="font-size:12px" aria-hidden="true"></i> '+w.dur+'</span>'
+    +'<div style="font-size:13px;color:var(--txt2);line-height:1.7;margin-top:12px">'+w.tip+'</div>';
+  G('btn-warm-prev').style.opacity=warmIdx===0?'0.35':'1';
+  G('btn-warm-next').innerHTML=warmIdx<d.warmup.length-1?'Siguiente <i class="ti ti-arrow-right" aria-hidden="true"></i>':'<i class="ti ti-player-play" aria-hidden="true"></i> Empezar';
+}
+G('btn-warm-prev').addEventListener('click',function(){if(warmIdx>0){warmIdx--;renderWarm();}});
+G('btn-warm-next').addEventListener('click',function(){
+  var d=DAYS[curDay];
+  if(warmIdx<d.warmup.length-1){warmIdx++;renderWarm();}
+  else buildWorkout();
+});
+
+function buildWorkout(){
+  var d=DAYS[curDay];
+  var title = d.badge;
+  G('wo-title').textContent=title;
+  if(G('wo-title-d')) G('wo-title-d').textContent=title;
+  exList=[];
+  d.sections.forEach(function(sec){sec.exercises.forEach(function(ex){exList.push({ex:ex,sec:sec.label});});});
+  var h='';
+  var idx=0;
+  d.sections.forEach(function(sec){
+    h+='<div class="slbl">'+sec.label+'</div>';
+    sec.exercises.forEach(function(ex){
+      var i=idx++;
+      h+='<div class="excard" data-ei="'+i+'">'
+        +'<div><div style="font-size:14px;font-weight:600;color:var(--txt);letter-spacing:-0.01em">'+ex.name+'</div>'
+        +'<div style="font-size:12px;color:var(--txt2);margin-top:3px">'+ex.sets+' series × '+ex.reps+' · '+fmtRest(ex.rest)+'</div></div>'
+        +'<i class="ti ti-chevron-right" style="font-size:16px;color:var(--txt3)" aria-hidden="true"></i>'
+        +'</div>';
+    });
+  });
+  G('wo-body').innerHTML=h;
+  G('wo-body').querySelectorAll('.excard').forEach(function(c){
+    c.addEventListener('click',function(){
+      exIdx=parseInt(c.getAttribute('data-ei'));
+      renderExercise(); show('s-exercise');
+    });
+  });
+  show('s-workout');
+}
+
+function renderExercise(){
+  var item=exList[exIdx]; var ex=item.ex;
+  var wk=getWeekKey();
+  var dbKey='d'+curDay+'_'+ex.name.replace(/\s/g,'_');
+  if(!db[dbKey]) db[dbKey]={};
+
+  var ctr = (exIdx+1)+'/'+exList.length;
+  G('ex-title').textContent=ex.name;
+  if(G('ex-title-d')) G('ex-title-d').textContent=ex.name;
+  G('ex-counter').textContent=ctr;
+  if(G('ex-counter-d')) G('ex-counter-d').textContent=ctr;
+  G('ex-pbr').style.width=Math.round(((exIdx+1)/exList.length)*100)+'%';
+  G('ex-nav-lbl').textContent=(exIdx+1)+' de '+exList.length;
+  G('btn-ex-prev').style.opacity=exIdx===0?'0.35':'1';
+  G('btn-ex-next').innerHTML=exIdx<exList.length-1?'Siguiente <i class="ti ti-arrow-right" aria-hidden="true"></i>':'<i class="ti ti-trophy" aria-hidden="true"></i> Finalizar';
+
+  var animFn=EX_SVG[ex.name]||wDefault;
+  G('ex-anim').innerHTML=animFn();
+  G('ex-name').textContent=ex.name;
+  G('ex-note').innerHTML='<i class="ti ti-info-circle" style="font-size:13px;vertical-align:-1px;margin-right:5px" aria-hidden="true"></i>'+ex.tip;
+
+  var pillsH='<span class="pill pill-blue">'+ex.sets+' series</span>'
+    +'<span class="pill pill-blue">'+ex.reps+' reps</span>'
+    +'<span class="pill pill-gray">Descanso: '+fmtRest(ex.rest)+'</span>';
+  if(ex.unit&&ex.unit!=='peso corporal'&&ex.unit!=='tiempo') pillsH+='<span class="pill pill-amber">Peso '+ex.unit+'</span>';
+  G('ex-pills').innerHTML=pillsH;
+
+  var allWeeks=getAllWeeks(dbKey);
+  var prevW=null;
+  if(allWeeks.length>0){
+    var lastWk=allWeeks[allWeeks.length-1];
+    var sets=db[dbKey][lastWk];
+    if(sets&&sets.length>0) prevW=parseFloat(sets[0]);
+  }
+  var sugg=prevW&&ex.inc>0?(prevW+ex.inc).toFixed(2):null;
+
+  var setsH='';
+  for(var s=0;s<ex.sets;s++){
+    var setKey=wk+'_s'+s;
+    var wVal=db[dbKey][setKey]||'';
+    var isDone=!!db[dbKey][setKey+'_done'];
+    setsH+='<div class="set-row">'
+      +'<div class="set-num'+(isDone?' done':'')+'">'+( isDone?'<i class="ti ti-check" style="font-size:12px" aria-hidden="true"></i>':(s+1))+'</div>'
+      +(ex.unit!=='peso corporal'&&ex.unit!=='tiempo'
+        ?'<input class="sinp" type="number" placeholder="kg" step="0.5" min="0" value="'+wVal+'" data-sk="'+setKey+'" data-dbk="'+dbKey+'">'
+        +'<span style="font-size:11px;color:var(--txt3)">kg</span>'
+        :'<span style="font-size:12px;color:var(--txt2)">'+ex.reps+'</span>')
+      +(sugg&&!isDone&&ex.inc>0?'<span style="font-size:11px;color:var(--green);flex:1">~ '+sugg+' kg</span>':'<span style="flex:1"></span>')
+      +(isDone
+        ?'<button class="sdbtn" disabled><i class="ti ti-check" aria-hidden="true"></i> Hecho</button>'
+        :'<button class="sdbtn" data-sk="'+setKey+'" data-dbk="'+dbKey+'" data-rest="'+ex.rest+'">Serie lista</button>')
+      +'</div>';
+  }
+  G('ex-sets').innerHTML=setsH;
+
+  G('ex-sets').querySelectorAll('input[data-sk]').forEach(function(inp){
+    inp.addEventListener('change',function(){
+      var sk=inp.getAttribute('data-sk'); var dbk=inp.getAttribute('data-dbk');
+      if(!db[dbk]) db[dbk]={};
+      db[dbk][sk]=inp.value;
+      if(!db[dbk][wk+'_sets']) db[dbk][wk+'_sets']=[];
+      saveDb();
+    });
+  });
+
+  G('ex-sets').querySelectorAll('button.sdbtn').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      var sk=btn.getAttribute('data-sk'); var dbk=btn.getAttribute('data-dbk'); var rest=parseInt(btn.getAttribute('data-rest'));
+      var inp=G('ex-sets').querySelector('input[data-sk="'+sk+'"]');
+      if(inp&&inp.value){
+        if(!db[dbk]) db[dbk]={};
+        db[dbk][sk]=inp.value;
+        if(!db[dbk][wk+'_allsets']) db[dbk][wk+'_allsets']=[];
+        db[dbk][wk+'_allsets'].push(inp.value);
+      }
+      if(!db[dbk]) db[dbk]={};
+      db[dbk][sk+'_done']=true;
+      saveDb();
+      updateStats();
+      renderExercise();
+      startRest(rest);
+    });
+  });
+
+  var prevH='';
+  if(allWeeks.length>0){
+    prevH='<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">'
+      +'<div style="font-size:10.5px;font-weight:600;color:var(--txt3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Semanas anteriores</div>';
+    allWeeks.slice(-3).forEach(function(wkk){
+      var sets=db[dbKey][wkk+'_allsets'];
+      var display=sets&&sets.length>0?sets.map(function(v){return v+'kg';}).join(' · '):'-';
+      prevH+='<div style="display:flex;justify-content:space-between;font-size:12.5px;padding:5px 0;border-bottom:1px solid var(--border)">'
+        +'<span style="color:var(--txt2)">'+fmtWeek(wkk)+'</span>'
+        +'<span style="font-weight:600;color:var(--txt);font-family:DM Mono,monospace">'+display+'</span>'
+        +'</div>';
+    });
+    if(sugg) prevH+='<div style="margin-top:8px;font-size:12.5px;color:var(--green)"><i class="ti ti-trending-up" style="font-size:13px;vertical-align:-2px" aria-hidden="true"></i> Próxima: <strong>'+sugg+' kg</strong> (+'+ex.inc+'kg '+ex.unit+')</div>';
+    prevH+='</div>';
+  }
+  G('ex-hist-prev').innerHTML=prevH;
+}
+
+function getAllWeeks(dbKey){
+  if(!db[dbKey]) return [];
+  var weeks=[];
+  Object.keys(db[dbKey]).forEach(function(k){
+    if(k.endsWith('_allsets')){var wk=k.replace('_allsets','');if(weeks.indexOf(wk)===-1)weeks.push(wk);}
+  });
+  return weeks.sort();
+}
+
+G('btn-ex-prev').addEventListener('click',function(){if(exIdx>0){exIdx--;renderExercise();}});
+G('btn-ex-next').addEventListener('click',function(){
+  if(exIdx<exList.length-1){exIdx++;renderExercise();}
+  else{show('s-home');}
+});
+
+function startRest(sec){
+  restSec=sec; restLeft=sec; clearInterval(restInt);
+  updateRestDisp();
+  restInt=setInterval(function(){if(restLeft<=0){clearInterval(restInt);show('s-exercise');return;}restLeft--;updateRestDisp();},1000);
+  show('s-rest');
+}
+function updateRestDisp(){
+  var m=Math.floor(restLeft/60),s=restLeft%60;
+  G('rest-disp').textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+}
+document.querySelectorAll('.tpbtn').forEach(function(b){
+  b.addEventListener('click',function(){
+    restSec=parseInt(b.getAttribute('data-s')); restLeft=restSec; clearInterval(restInt);
+    restInt=setInterval(function(){if(restLeft<=0){clearInterval(restInt);show('s-exercise');return;}restLeft--;updateRestDisp();},1000);
+    updateRestDisp();
+  });
+});
+
+function renderHist(){
+  var gymDays=DAYS.filter(function(d){return d.type==='gym';});
+  var tabs='';
+  gymDays.forEach(function(d){
+    var di=DAYS.indexOf(d);
+    tabs+='<div class="dtab'+(di===histDayIdx?' on':'')+'" data-di="'+di+'">'+d.short+'</div>';
+  });
+  G('hist-day-tabs').innerHTML=tabs;
+  G('hist-day-tabs').querySelectorAll('.dtab').forEach(function(t){
+    t.addEventListener('click',function(){histDayIdx=parseInt(t.getAttribute('data-di'));histWeekIdx=0;renderHist();});
+  });
+
+  var day=DAYS[histDayIdx];
+  var allExKeys=[];
+  day.sections.forEach(function(sec){sec.exercises.forEach(function(ex){allExKeys.push({ex:ex,key:'d'+histDayIdx+'_'+ex.name.replace(/\s/g,'_')});});});
+
+  var allWeeks=new Set();
+  allExKeys.forEach(function(item){
+    getAllWeeks(item.key).forEach(function(w){allWeeks.add(w);});
+  });
+  var weekArr=Array.from(allWeeks).sort();
+
+  if(weekArr.length===0){
+    G('hist-wk-label').textContent='Sin semanas';
+    G('hist-body').innerHTML='<div class="empty"><i class="ti ti-chart-bar" style="font-size:32px;display:block;margin-bottom:10px;color:var(--txt3)" aria-hidden="true"></i>Aún no hay pesos registrados para este día.</div>';
+    return;
+  }
+
+  if(histWeekIdx>=weekArr.length) histWeekIdx=weekArr.length-1;
+  if(histWeekIdx<0) histWeekIdx=0;
+  var selWk=weekArr[histWeekIdx];
+  G('hist-wk-label').textContent=fmtWeek(selWk)+' ('+(histWeekIdx+1)+'/'+weekArr.length+')';
+
+  G('btn-hist-prev').style.opacity=histWeekIdx===0?'0.35':'1';
+  G('btn-hist-next').style.opacity=histWeekIdx===weekArr.length-1?'0.35':'1';
+
+  var h='';
+  allExKeys.forEach(function(item){
+    var sets=db[item.key]&&db[item.key][selWk+'_allsets'];
+    var lastWks=getAllWeeks(item.key);
+    var li=lastWks.indexOf(selWk);
+    var prevWk=li>0?lastWks[li-1]:null;
+    var prevSets=prevWk&&db[item.key]&&db[item.key][prevWk+'_allsets'];
+    var prevAvg=prevSets&&prevSets.length>0?(prevSets.reduce(function(a,v){return a+parseFloat(v);},0)/prevSets.length):null;
+    var curAvg=sets&&sets.length>0?(sets.reduce(function(a,v){return a+parseFloat(v);},0)/sets.length):null;
+
+    h+='<div class="hist-ex-block">'
+      +'<div class="hist-ex-head">'
+      +'<div class="hist-ex-name">'+item.ex.name+'</div>'
+      +(curAvg&&item.ex.inc>0?'<span class="pill pill-green" style="font-size:11px">Próx: '+(curAvg+item.ex.inc).toFixed(1)+'kg</span>':'')
+      +'</div>';
+    if(sets&&sets.length>0){
+      sets.forEach(function(v,i){
+        var diff=prevAvg?+(parseFloat(v)-prevAvg).toFixed(1):null;
+        var diffHtml=diff!==null?(diff>0?'<span style="color:var(--green);margin-left:6px">+'+diff+'</span>':diff<0?'<span style="color:var(--red);margin-left:6px">'+diff+'</span>':''):'';
+        h+='<div class="hist-set-row"><span style="color:var(--txt2)">Serie '+(i+1)+'</span><span style="font-weight:600;color:var(--txt);font-family:DM Mono,monospace">'+v+' kg'+diffHtml+'</span></div>';
+      });
+    } else {
+      h+='<div class="hist-set-row" style="justify-content:center;color:var(--txt3)">Sin datos esta semana</div>';
+    }
+    h+='</div>';
+  });
+  G('hist-body').innerHTML=h;
+}
+
+G('btn-hist-prev').addEventListener('click',function(){
+  if(histWeekIdx>0){histWeekIdx--;renderHist();}
+});
+G('btn-hist-next').addEventListener('click',function(){
+  var day=DAYS[histDayIdx];
+  var allExKeys=[];
+  day.sections.forEach(function(sec){sec.exercises.forEach(function(ex){allExKeys.push('d'+histDayIdx+'_'+ex.name.replace(/\s/g,'_'));});});
+  var allWeeks=new Set();
+  allExKeys.forEach(function(k){getAllWeeks(k).forEach(function(w){allWeeks.add(w);});});
+  if(histWeekIdx<Array.from(allWeeks).length-1){histWeekIdx++;renderHist();}
+});
+
+/* ── SVG ANIMATIONS ──────────────────────────────────── */
+function svgW(content){return '<svg viewBox="0 0 260 120" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:120px">'+content+'</svg>';}
+function stick(x,y,c,a1,a2){
+  c=c||'#6C63FF'; a1=a1||0; a2=a2||0;
+  return '<g>'
+    +'<circle cx="'+x+'" cy="'+y+'" r="8" fill="none" stroke="'+c+'" stroke-width="2.5"/>'
+    +'<line x1="'+x+'" y1="'+(y+8)+'" x2="'+x+'" y2="'+(y+32)+'" stroke="'+c+'" stroke-width="2.5"/>'
+    +'<line x1="'+x+'" y1="'+(y+14)+'" x2="'+(x-18+a1)+'" y2="'+(y+26)+'" stroke="'+c+'" stroke-width="2"/>'
+    +'<line x1="'+x+'" y1="'+(y+14)+'" x2="'+(x+18+a2)+'" y2="'+(y+26)+'" stroke="'+c+'" stroke-width="2"/>'
+    +'<line x1="'+x+'" y1="'+(y+32)+'" x2="'+(x-12)+'" y2="'+(y+54)+'" stroke="'+c+'" stroke-width="2"/>'
+    +'<line x1="'+x+'" y1="'+(y+32)+'" x2="'+(x+12)+'" y2="'+(y+54)+'" stroke="'+c+'" stroke-width="2"/>'
+    +'</g>';
+}
+
+function wShoulder(){return svgW(stick(130,22)+'<text x="130" y="112" text-anchor="middle" font-size="11" fill="#9896B0">Movilidad hombros</text>');}
+function wChest(){return svgW(stick(130,22,-12,12)+'<text x="130" y="112" text-anchor="middle" font-size="11" fill="#9896B0">Apertura de pecho</text>');}
+function wPushup(){return svgW('<rect x="40" y="88" width="180" height="4" rx="2" fill="#3A3A55"/>'+stick(130,28)+'<text x="130" y="112" text-anchor="middle" font-size="11" fill="#9896B0">Flexiones</text>');}
+function wWrist(){return svgW(stick(130,22)+'<text x="130" y="112" text-anchor="middle" font-size="11" fill="#9896B0">Muñecas</text>');}
+function wCamel(){return svgW('<rect x="40" y="88" width="180" height="4" rx="2" fill="#3A3A55"/>'+stick(130,28)+'<text x="130" y="112" text-anchor="middle" font-size="11" fill="#9896B0">Cat-cow</text>');}
+function wPulldown(){return svgW('<rect x="115" y="8" width="30" height="30" rx="4" fill="#3A3A55"/>'+stick(130,38)+'<text x="130" y="112" text-anchor="middle" font-size="11" fill="#9896B0">Jalón activación</text>');}
+function wCurl(){return svgW(stick(130,22)+'<text x="130" y="112" text-anchor="middle" font-size="11" fill="#9896B0">Curl activación</text>');}
+function wHip(){return svgW(stick(130,22)+'<text x="130" y="112" text-anchor="middle" font-size="11" fill="#9896B0">Movilidad cadera</text>');}
+function wSquat(){return svgW(stick(130,22)+'<text x="130" y="112" text-anchor="middle" font-size="11" fill="#9896B0">Sentadilla goblet</text>');}
+function wLateral(){return svgW(stick(130,22,-14,14)+'<text x="130" y="112" text-anchor="middle" font-size="11" fill="#9896B0">Elevaciones laterales</text>');}
+function wLunge(){return svgW(stick(130,22)+'<text x="130" y="112" text-anchor="middle" font-size="11" fill="#9896B0">Zancada</text>');}
+function wAnkle(){return svgW(stick(130,22)+'<text x="130" y="112" text-anchor="middle" font-size="11" fill="#9896B0">Movilidad tobillo</text>');}
+function wBridge(){return svgW('<rect x="40" y="88" width="180" height="4" rx="2" fill="#3A3A55"/>'+stick(130,28)+'<text x="130" y="112" text-anchor="middle" font-size="11" fill="#9896B0">Puente glúteo</text>');}
+function wPlank(){return svgW('<rect x="40" y="88" width="180" height="4" rx="2" fill="#3A3A55"/>'+stick(130,28)+'<text x="130" y="112" text-anchor="middle" font-size="11" fill="#9896B0">Plancha</text>');}
+function wDefault(){return svgW(stick(130,22)+'<text x="130" y="112" text-anchor="middle" font-size="11" fill="#9896B0">Ejercicio</text>');}
+
+var EX_SVG={
+  "Press de banca con barra":function(){return svgW('<rect x="50" y="82" width="160" height="10" rx="4" fill="#3A3A55"/><rect x="40" y="40" width="180" height="7" rx="3" fill="#5A5878"/><circle cx="40" cy="44" r="9" fill="#6C63FF" opacity=".5"/><circle cx="220" cy="44" r="9" fill="#6C63FF" opacity=".5"/>'+stick(130,18)+'<text x="130" y="112" text-anchor="middle" font-size="11" fill="#9896B0">Press banca</text>');},
+  "Press inclinado con mancuernas":function(){return svgW('<rect x="60" y="70" width="140" height="10" rx="4" fill="#3A3A55" transform="rotate(-18 130 75)"/>'+stick(130,18)+'<text x="130" y="112" text-anchor="middle" font-size="11" fill="#9896B0">Press inclinado</text>');},
+  "Cruce de poleas":function(){return svgW('<line x1="20" y1="15" x2="115" y2="70" stroke="#6C63FF" stroke-width="2" opacity=".5"/><line x1="240" y1="15" x2="145" y2="70" stroke="#6C63FF" stroke-width="2" opacity=".5"/>'+stick(130,18,-14,14)+'<text x="130" y="112" text-anchor="middle" font-size="11" fill="#9896B0">Cruce poleas</text>');},
+  "Remo con barra":function(){return svgW('<rect x="50" y="52" width="160" height="7" rx="3" fill="#5A5878"/><circle cx="50" cy="55" r="8" fill="#6C63FF" opacity=".5"/><circle cx="210" cy="55" r="8" fill="#6C63FF" opacity=".5"/>'+stick(130,18)+'<text x="130" y="112" text-anchor="middle" font-size="11" fill="#9896B0">Remo barra</text>');},
+  "Press militar con barra":function(){return svgW('<rect x="50" y="35" width="160" height="7" rx="3" fill="#5A5878"/><circle cx="50" cy="38" r="8" fill="#6C63FF" opacity=".5"/><circle cx="210" cy="38" r="8" fill="#6C63FF" opacity=".5"/>'+stick(130,42)+'<text x="130" y="112" text-anchor="middle" font-size="11" fill="#9896B0">Press militar</text>');},
+  "Hip thrust con barra":function(){return svgW('<rect x="40" y="88" width="180" height="6" rx="3" fill="#3A3A55"/><rect x="95" y="60" width="70" height="8" rx="3" fill="#5A5878"/>'+stick(130,28)+'<text x="130" y="112" text-anchor="middle" font-size="11" fill="#9896B0">Hip thrust</text>');},
+  "Plancha frontal":wPlank,
+  "default":wDefault
+};
+
+renderHome();
+</script>
+</body>
+</html>
